@@ -34,5 +34,38 @@ clean-targets:         # directories to be removed by `dbt clean`
 models:
   my_new_project:
     # Applies to all files under models/example/
-    example:
-      materialized: view
+
+    staging:
+      +materialized: view
+      +database: |  
+        {%- if  target.name == 'user_dev' -%} dev_silver_db_alumno24 
+        {%- elif target.name == 'ci' -%} dev_silver_db_alumno24 
+        {%- elif target.name == 'pro'-%} pro_silver_db_alumno24 
+        {%- else -%} alumno24_silver_db_alumno24
+        {%- endif -%}
+      google_sheets:
+        +schema: google_sheets
+      sql_server_dbo:
+        +schema: sql_server_dbo
+      
+    marts:
+      +materialized: table
+      +database: |  
+        {%- if  target.name == 'user_dev' -%} dev_gold_db_alumno24
+        {%- elif target.name == 'ci' -%} dev_gold_db_alumno24
+        {%- elif target.name == 'pro'-%} pro_gold_db_alumno24
+        {%- else -%} alumno24_gold_db_alumno_admin
+        {%- endif -%}
+      core:
+        +schema: core
+        
+snapshots:
+  +sql_header: "alter session set timezone = 'Europe/Madrid';alter session set week_start = 7;"
+  +transient: false
+  +target_database: |  
+        {%- if  target.name == 'user_dev' -%} dev_silver_db_alumno24
+        {%- elif target.name == 'ci' -%} dev_silver_db_alumno24 
+        {%- elif target.name == 'pro'-%} pro_silver_db_alumno24  
+        {%- else -%} alumno24_silver_db_alumno_admin
+        {%- endif -%}
+  +target_schema: snapshots
