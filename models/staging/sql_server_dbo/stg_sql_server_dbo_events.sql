@@ -1,22 +1,27 @@
 WITH src_events AS (
-    SELECT * 
-    FROM {{ source('sql_server_dbo', 'events') }}
+        SELECT * 
+        FROM {{ source('sql_server_dbo', 'events') }}
     ),
 
-renamed_casted AS (
-    SELECT
-         event_id
-        ,page_url
-        ,event_type
-        ,user_id
-        ,product_id
-        ,session_id
-        ,created_at
-        ,order_id
-        ,_fivetran_deleted
-        ,_fivetran_synced
-    FROM src_events
+new_events AS (
+        SELECT
+            event_id as event_id_natural,
+            md5(event_id) as event_id,
+            md5(event_type) as event_type_id,
+            md5(session_id) as session_id,
+            case 
+                when product_id = '' then null
+                else md5(product_id)
+            end as product_id,
+            case 
+                when order_id = '' then null
+                else md5(order_id)
+            end as order_id,
+            page_url,
+            created_at
+
+            
+        FROM src_events
     )
 
-SELECT * FROM renamed_casted
-
+SELECT * FROM new_events

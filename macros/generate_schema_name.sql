@@ -1,7 +1,7 @@
 {% macro generate_schema_name(custom_schema_name, node) -%} 
 
     {%- set default_schema = target.schema -%}
-    {%- if target.name in ['pre','pro','user_dev'] and custom_schema_name is not none -%}
+    {%- if target.name in ['pre','Pro','user_dev'] and custom_schema_name is not none -%}
 
         {{ custom_schema_name | trim }}
 
