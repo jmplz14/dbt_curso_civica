@@ -5,11 +5,12 @@ WITH src_users AS (
 
 new_users AS (
         SELECT
-            md5(user_id),
+            md5(user_id) as user_id,
+            user_id as user_id_nk,
             email,
-            updated_at,
-            md5(address_id),
-            created_at,
+            updated_at as updated_at_utc,
+            md5(address_id) as address_id,
+            created_at as created_at_utc,
             cast (REPLACE (phone_number, '-', '') as integer) as phone_number,
             first_name,
             last_name,

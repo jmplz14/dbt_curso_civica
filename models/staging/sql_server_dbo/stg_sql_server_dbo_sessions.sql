@@ -5,10 +5,10 @@ WITH src_sessions AS (
 
 new_sessions AS (
         SELECT 
-            session_id as session_id_natural,
+            session_id as session_id_nk,
             md5(session_id) as session_id,
             md5(user_id) as user_id,
-            min(created_at) as created_at
+            min(created_at) as created_at_utc
 
 
             

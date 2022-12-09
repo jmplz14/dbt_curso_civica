@@ -6,8 +6,9 @@ WITH src_addresses AS (
 new_addresses AS (
         SELECT
             md5(address_id) as address_id,
-            address_id as address_id_natural,
-            md5(zipcode),
+            address_id as address_id_nk,
+            address,
+            md5(zipcode) as zipcode_id,
             _fivetran_deleted,
             _fivetran_synced         
         FROM src_addresses

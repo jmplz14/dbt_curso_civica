@@ -6,7 +6,7 @@ WITH src_promos AS (
 new_promos AS (
         SELECT
             md5(promo_id) as promo_id,
-            promo_id as promo_id_natural,
+            promo_id as promo_id_nk,
             discount,
             case 
                 when status = 'inactive' then False
@@ -15,5 +15,5 @@ new_promos AS (
 
         FROM src_promos
     )
-    
+
 SELECT * FROM new_promos

@@ -18,7 +18,7 @@ new_events AS (
                 else md5(order_id)
             end as order_id,
             page_url,
-            created_at
+            created_at as created_at_utc
 
             
         FROM src_events

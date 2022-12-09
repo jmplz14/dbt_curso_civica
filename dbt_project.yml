@@ -40,7 +40,7 @@ models:
       +database: |  
         {%- if  target.name == 'user_dev' -%} dev_silver_db_alumno24 
         {%- elif target.name == 'ci' -%} dev_silver_db_alumno24 
-        {%- elif target.name == 'Pro'-%} pro_silver_db_alumno24 
+        {%- elif target.name == 'pro'-%} pro_silver_db_alumno24 
         {%- else -%} alumno24_silver_db_alumno24
         {%- endif -%}
       google_sheets:
@@ -53,7 +53,7 @@ models:
       +database: |  
         {%- if  target.name == 'user_dev' -%} dev_gold_db_alumno24
         {%- elif target.name == 'ci' -%} dev_gold_db_alumno24
-        {%- elif target.name == 'Pro'-%} pro_gold_db_alumno24
+        {%- elif target.name == 'pro'-%} pro_gold_db_alumno24
         {%- else -%} alumno24_gold_db_alumno_admin
         {%- endif -%}
       core:
@@ -65,7 +65,7 @@ snapshots:
   +target_database: |  
         {%- if  target.name == 'user_dev' -%} dev_silver_db_alumno24
         {%- elif target.name == 'ci' -%} dev_silver_db_alumno24 
-        {%- elif target.name == 'Pro'-%} pro_silver_db_alumno24  
+        {%- elif target.name == 'pro'-%} pro_silver_db_alumno24  
         {%- else -%} alumno24_silver_db_alumno_admin
         {%- endif -%}
   +target_schema: snapshots
