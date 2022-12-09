@@ -1,4 +1,4 @@
-{% macro obtener_tipo_eventos(table, column) %}
+{% macro get_distinct_values_column(table, column) %}
   --Preparamos la query
   {% set query_sql %}
     SELECT DISTINCT {{column}} FROM {{table}}

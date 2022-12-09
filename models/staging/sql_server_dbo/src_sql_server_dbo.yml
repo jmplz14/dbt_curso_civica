@@ -2,57 +2,324 @@ version: 2
 
 sources:
   - name: sql_server_dbo
-    schema: sql_server_dbo
-    database: |
-        {%- if  target.name == 'user_dev' -%} dev_bronze_db_alumno24 
-        {%- elif target.name == 'ci' -%} dev_bronze_db_alumno24 
-        {%- elif target.name == 'pro'-%} pro_bronze_db_alumno24  
-        {%- else -%} {{target.database}}_bronze_db_alumno24 
-        {%- endif -%}
+    description: ""
+    database: dev_bronze_db_alumno24
     tables:
+
+      - name: addresses
+        description: ""
+        columns:
+          - name: address_id
+            description: ""
+            tests:
+              - not_null 
+              - unique
+
+          - name: address
+            description: ""
+            tests:
+              - not_null
+            
+          - name: state
+            description: ""
+            tests:
+              - not_null
+
+          - name: country
+            description: ""
+            tests: 
+              - not_null
+
+          - name: zipcode
+            description: ""
+            tests:
+              - not_null
+          - name: _fivetran_deleted
+            description: ""
+          - name: _fivetran_synced
+            description: ""
+
       - name: events
-        description: >
-          Data about events in the platform of demo.
+        description: ""
         columns:
           - name: event_id
-            description: >
-              UUID of each unique event on the platform.
+            description: ""
             tests:
               - not_null
               - unique
-          - name: session_id
-            description: >
-              UUID of each browsing session on the platform which can contain many events.
-            tests:
-              - not_null
+
           - name: user_id
-            description: >
-              UUID of the user that this event is associated with.
+            description: ""
             tests:
               - not_null
-          - name: page_url
-            description: >
-              URL that the event happened on.
-            tests:
-              - not_null
-          - name: created_at
-            description: >
-              Timestamp of the event (UTC).
-            tests:
-              - not_null
+              - relationships:
+                  to: source('sql_server_dbo','users')
+                  field: user_id
+
           - name: event_type
-            description: >
-              Type of event.
+            description: ""
             tests:
               - not_null
-          - name: order_id
-            description: >
-              If the event is specific to an order (mostly used for checkout).
+              - accepted_values:
+                  values: ['add_to_cart', 'checkout', 'package_shipped','page_view']
+
+          - name: created_at
+            description: ""
+            tests:
+              - not_null
+
           - name: product_id
-            description: >
-              If the event is specific to a product.
-          - name: _fivetran_synced
-            description: >
-              Date that the data was loaded.
+            description: ""
+
+          - name: order_id
+            description: ""
+
+              
+          - name: page_url
+            description: ""
             tests:
               - not_null
+
+          - name: session_id
+            description: ""
+            tests:
+              - not_null
+
+          - name: _fivetran_deleted
+            description: ""
+          - name: _fivetran_synced
+            description: ""
+
+      - name: order_items
+        description: ""
+        columns:
+        
+          - name: order_id
+            description: ""
+            tests:
+              - not_null
+
+          - name: product_id
+            description: ""
+            tests:
+              - relationships:
+                  to: source('sql_server_dbo','products')
+                  field: product_id
+              - not_null
+              
+
+          - name: quantity
+            description: ""
+            tests:
+              - dbt_utils.expression_is_true:
+                  expression: "> 0"
+              - not_null
+
+          - name: _fivetran_deleted
+            description: ""
+
+          - name: _fivetran_synced
+            description: ""
+
+      - name: orders
+        description: ""
+        columns:
+          - name: order_id
+            description: ""
+            tests:
+              - not_null
+              - unique
+
+          - name: shipping_service
+            description: ""
+
+          - name: shipping_cost
+            description: ""
+            tests:
+              - dbt_utils.expression_is_true:
+                  expression: ">= 0"
+              - not_null
+
+          - name: address_id
+            description: ""
+            tests:
+              - relationships:
+                  to: source('sql_server_dbo','addresses')
+                  field: address_id
+              - not_null
+
+          - name: created_at
+            description: ""
+            tests:
+              - not_null
+
+          - name: promo_id
+            description: ""
+
+          - name: estimated_delivery_at
+            description: ""
+
+          - name: order_cost
+            description: ""
+            tests:
+              - dbt_utils.expression_is_true:
+                  expression: "> 0"
+              - not_null
+
+          - name: user_id
+            description: ""
+            tests:
+              - relationships:
+                  to: source('sql_server_dbo', 'users')
+                  field: user_id
+              - not_null
+
+          - name: order_total
+            description: ""
+            tests:
+              - dbt_utils.expression_is_true:
+                  expression: "> 0"
+              - not_null
+          - name: delivered_at
+            description: ""
+
+          - name: tracking_id
+            description: ""
+
+          - name: status
+            description: ""
+            tests:
+              - not_null
+              - accepted_values:
+                  values: ['delivered', 'shipped', 'preparing']
+
+          - name: _fivetran_deleted
+            description: ""
+          - name: _fivetran_synced
+            description: ""
+
+      - name: products
+        description: ""
+        columns:
+          - name: product_id
+            description: ""
+            tests:
+              - dbt_constraints.primary_key
+
+
+          - name: price
+            description: ""
+            tests:
+              - dbt_utils.expression_is_true:
+                  expression: "> 0"
+              - not_null
+
+          - name: name
+            description: ""
+            tests:
+            - not_null
+            - unique
+            
+          - name: inventory
+            description: ""
+            tests:
+              - dbt_utils.expression_is_true:
+                  expression: "> 0"
+              - not_null
+
+          - name: _fivetran_deleted
+            description: ""
+
+          - name: _fivetran_synced
+            description: ""
+
+      - name: promos
+        description: ""
+        columns:
+
+          - name: promo_id
+            description: ""
+            tests:
+              - unique
+              - not_null
+            
+          - name: status
+            description: ""
+            tests:
+              - accepted_values:
+                  values: ['inactive', 'active']
+
+          - name: discount
+            description: ""
+            tests:
+              - dbt_utils.expression_is_true:
+                  expression: "> 0"
+              - not_null
+
+          - name: _fivetran_deleted
+            description: ""
+
+          - name: _fivetran_synced
+            description: ""
+
+      - name: users
+        description: ""
+        columns:
+          - name: user_id
+            description: ""
+            tests:
+              - not_null
+              - unique
+            
+          - name: email
+            description: ""
+            tests:
+              - dbt_expectations.expect_column_values_to_match_regex:
+                  regex: '^[A-Za-z]+[A-Za-z0-9.]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$'
+              - unique
+              - not_null
+          
+          - name: updated_at
+            description: ""
+            tests:
+              - not_null
+
+
+          - name: address_id
+            description: ""
+            tests:
+              - relationships:
+                  to: source('sql_server_dbo','addresses')
+                  field: address_id
+              - not_null
+
+          - name: created_at
+            description: ""
+            tests:
+              - not_null 
+
+          - name: phone_number
+            description: ""
+            tests:
+              - dbt_expectations.expect_column_values_to_match_regex:
+                  regex: "^[1-9][0-9]{2}-[0-9]{3}-[0-9]{4}$"
+                
+              - unique
+              - not_null
+
+          - name: total_orders
+            description: ""
+
+          - name: first_name
+            description: ""
+            tests:
+              - not_null
+          - name: last_name
+            description: ""
+            tests:
+              - not_null
+          - name: _fivetran_deleted
+            description: ""
+          - name: _fivetran_synced
+            description: ""
+    
