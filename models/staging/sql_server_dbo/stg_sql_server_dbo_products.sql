@@ -5,8 +5,9 @@ WITH src_products AS (
 
 new_products AS (
         SELECT
-            md5(product_id),
-            price,
+            md5(product_id) as product_id,
+            product_id as product_id_nk,
+            price as price_usd,
             name,
             inventory,
             _fivetran_deleted,

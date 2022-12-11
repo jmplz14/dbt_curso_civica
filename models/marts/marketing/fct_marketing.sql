@@ -14,10 +14,6 @@ WITH dim_users AS (
     SELECT * 
     FROM {{ ref('dim_orders_items') }}
     ),
-    dim_promos AS (
-    SELECT * 
-    FROM {{ ref('dim_promos') }}
-    ),
 
     count_orders AS (
     SELECT
