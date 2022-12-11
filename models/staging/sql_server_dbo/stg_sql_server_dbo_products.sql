@@ -7,7 +7,7 @@ new_products AS (
         SELECT
             md5(product_id) as product_id,
             product_id as product_id_nk,
-            price,
+            price as price_usd,
             name,
             inventory,
             _fivetran_deleted,

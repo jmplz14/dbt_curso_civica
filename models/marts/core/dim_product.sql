@@ -14,7 +14,7 @@ new_dim_products AS (
     SELECT
       product_id,
       product_id_nk,
-      price,
+      price_usd,
       name,
       inventory
     FROM stg_products 
