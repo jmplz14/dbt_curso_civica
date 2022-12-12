@@ -2,7 +2,9 @@ version: 2
 
 sources:
   - name: sql_server_dbo
-    description: ""
+    description: >
+      Zona bronce de nuestro proyecto. En esta zona tendremos la información 
+      sobre usarios, direcciones, eventos, pedidos y productos.
     database: |
         {%- if  target.name == 'user_dev' -%} dev_bronze_db_alumno24 
         {%- elif target.name == 'ci' -%} dev_bronze_db_alumno24 
@@ -12,49 +14,52 @@ sources:
     tables:
 
       - name: addresses
-        description: ""
+        description: "Almacena las direcciones de usuarios y pedidos."
         columns:
           - name: address_id
-            description: ""
+            description: "Id única para una dirección."
             tests:
               - not_null 
               - unique
 
           - name: address
-            description: ""
+            description: "Contiene el número y la calle."
             tests:
               - not_null
             
           - name: state
-            description: ""
+            description: "Estado al que pertenece."
             tests:
               - not_null
 
           - name: country
-            description: ""
+            description: "Pais al que pertenece."
             tests: 
               - not_null
 
           - name: zipcode
-            description: ""
+            description: "Zipcode de la ciudad a la que pertenece."
             tests:
               - not_null
+              - dbt_utils.accepted_range:
+                  min_value: 1000
+                  max_value: 99999
           - name: _fivetran_deleted
             description: ""
           - name: _fivetran_synced
             description: ""
 
       - name: events
-        description: ""
+        description: "Almacena toda la información sobre los eventos de la web."
         columns:
           - name: event_id
-            description: ""
+            description: "Identificador único por evento."
             tests:
               - not_null
               - unique
 
           - name: user_id
-            description: ""
+            description: "Id del usuario que genera el evento."
             tests:
               - not_null
               - relationships:
@@ -62,31 +67,32 @@ sources:
                   field: user_id
 
           - name: event_type
-            description: ""
+            description: "Tipos de eventos almacenados(add_to_cart, checkout, package_shipped y page_view)."
             tests:
               - not_null
               - accepted_values:
                   values: ['add_to_cart', 'checkout', 'package_shipped','page_view']
 
           - name: created_at
-            description: ""
+            description: "Fecha de creacion del evento."
             tests:
               - not_null
 
           - name: product_id
-            description: ""
+            description: "Id del procutos que se esta visitando. Solo si el evento es add_to_cart o page_view."
 
           - name: order_id
-            description: ""
+            description: "Id del pedido que se está visitando. Solo si el evento es package_shipped o checkout."
 
               
           - name: page_url
-            description: ""
+            description: "Url visitada"
             tests:
               - not_null
 
           - name: session_id
-            description: ""
+            description: > 
+              Id de la sesión a la que pertenece un evento. Una sesión puede tener varios eventos.
             tests:
               - not_null
 
@@ -96,16 +102,19 @@ sources:
             description: ""
 
       - name: order_items
-        description: ""
+        description: "Tabla intermedia para conectar los pedidos con los productos."
         columns:
         
           - name: order_id
-            description: ""
+            description: "Id del pedido al que pertenece el producto."
             tests:
               - not_null
+              - relationships:
+                  to: source('sql_server_dbo','orders')
+                  field: order_id
 
           - name: product_id
-            description: ""
+            description: "Id de un prodcuto que pertenece a un pedido."
             tests:
               - relationships:
                   to: source('sql_server_dbo','products')
@@ -114,7 +123,7 @@ sources:
               
 
           - name: quantity
-            description: ""
+            description: "Cantidad de un producto que tiene el pedido."
             tests:
               - dbt_utils.expression_is_true:
                   expression: "> 0"
@@ -127,26 +136,29 @@ sources:
             description: ""
 
       - name: orders
-        description: ""
+        description: >
+          Contienen toda la información necesaria de un pedido. 
+          Tiene los costes que tiene un pedido, los datos de la empresa de envío y fechas
+          del envío. 
         columns:
           - name: order_id
-            description: ""
+            description: "Id del pedido."
             tests:
               - not_null
               - unique
 
           - name: shipping_service
-            description: ""
+            description: "Empresa que se encarga del envío."
 
           - name: shipping_cost
-            description: ""
+            description: "Coste del envío para el pedido."
             tests:
               - dbt_utils.expression_is_true:
                   expression: ">= 0"
               - not_null
 
           - name: address_id
-            description: ""
+            description: "Id de la dirección de envío."
             tests:
               - relationships:
                   to: source('sql_server_dbo','addresses')
@@ -154,25 +166,28 @@ sources:
               - not_null
 
           - name: created_at
-            description: ""
+            description: "Fecha de creación del pedido."
             tests:
               - not_null
 
           - name: promo_id
-            description: ""
+            description: >
+              Id de la promoción que tiene el pedido. Si el pedido tiene un promo_id, la 
+              suma shipping_cost + order_cost será distinta al order_total. El order_total
+              ya tiene el porcentaje de descuento aplicado. 
 
           - name: estimated_delivery_at
-            description: ""
+            description: "Fecha estimada del envio."
 
           - name: order_cost
-            description: ""
+            description: "Coste del pedido. No tiene aplicado el envío ni el descuento."
             tests:
               - dbt_utils.expression_is_true:
                   expression: "> 0"
               - not_null
 
           - name: user_id
-            description: ""
+            description: "Usuario que realiza el pedido."
             tests:
               - relationships:
                   to: source('sql_server_dbo', 'users')
@@ -180,19 +195,21 @@ sources:
               - not_null
 
           - name: order_total
-            description: ""
+            description: "Precio total del pedido. Con el descuento aplicado y el coste de envío."
             tests:
               - dbt_utils.expression_is_true:
                   expression: "> 0"
               - not_null
           - name: delivered_at
-            description: ""
+            description: "Fecha de envio para el pedido."
 
           - name: tracking_id
-            description: ""
+            description: "Identificador del tracking para un pedido."
 
           - name: status
-            description: ""
+            description: > 
+              Estado actual del pedido. Pueden ser delivered, shipped y preparing.
+            
             tests:
               - not_null
               - accepted_values:
@@ -204,29 +221,30 @@ sources:
             description: ""
 
       - name: products
-        description: ""
+        description: "Tabla para contener la información de productos."
         columns:
           - name: product_id
-            description: ""
+            description: "Identificador de un producto."
             tests:
-              - dbt_constraints.primary_key
+              - not_null
+              - unique
 
 
           - name: price
-            description: ""
+            description: "Precio del producto."
             tests:
               - dbt_utils.expression_is_true:
                   expression: "> 0"
               - not_null
 
           - name: name
-            description: ""
+            description: "Nombre del producto."
             tests:
             - not_null
             - unique
             
           - name: inventory
-            description: ""
+            description: "Cantidad de unidades que tenemos de un producto."
             tests:
               - dbt_utils.expression_is_true:
                   expression: "> 0"
@@ -239,23 +257,23 @@ sources:
             description: ""
 
       - name: promos
-        description: ""
+        description: "Información de las promociones que tenemos para los pedidos."
         columns:
 
           - name: promo_id
-            description: ""
+            description: "Id de la promoción. En este caso se trata de un string con el nombre."
             tests:
               - unique
               - not_null
             
           - name: status
-            description: ""
+            description: "Si la promocion esta activa o inactiva. Es un string."
             tests:
               - accepted_values:
                   values: ['inactive', 'active']
 
           - name: discount
-            description: ""
+            description: "Descuento que aplica la promoción."
             tests:
               - dbt_utils.expression_is_true:
                   expression: "> 0"
@@ -268,7 +286,7 @@ sources:
             description: ""
 
       - name: users
-        description: ""
+        description: "Tabla para almacenar la información de los usuarios que realizan pedidos y eventos."
         columns:
           - name: user_id
             description: ""
@@ -277,7 +295,7 @@ sources:
               - unique
             
           - name: email
-            description: ""
+            description: "Correo del usuario."
             tests:
               - dbt_expectations.expect_column_values_to_match_regex:
                   regex: '^[A-Za-z]+[A-Za-z0-9.]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$'
@@ -285,13 +303,13 @@ sources:
               - not_null
           
           - name: updated_at
-            description: ""
+            description: "Fecha de actualizacion de un usuario"
             tests:
               - not_null
 
 
           - name: address_id
-            description: ""
+            description: "Identificador de la dirección de un usuario."
             tests:
               - relationships:
                   to: source('sql_server_dbo','addresses')
@@ -299,12 +317,12 @@ sources:
               - not_null
 
           - name: created_at
-            description: ""
+            description: "Fecha de creación de un usario."
             tests:
               - not_null 
 
           - name: phone_number
-            description: ""
+            description: "Numero de teléfon separado por guiones."
             tests:
               - dbt_expectations.expect_column_values_to_match_regex:
                   regex: "^[1-9][0-9]{2}-[0-9]{3}-[0-9]{4}$"
@@ -313,14 +331,14 @@ sources:
               - not_null
 
           - name: total_orders
-            description: ""
+            description: "Esta columna viene vacía."
 
           - name: first_name
-            description: ""
+            description: "Nombre del usuario"
             tests:
               - not_null
           - name: last_name
-            description: ""
+            description: "Apellidos del usuario"
             tests:
               - not_null
           - name: _fivetran_deleted
