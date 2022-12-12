@@ -1,0 +1,145 @@
+version: 2
+
+models:
+      - name: billing_web_state
+        description: >
+          Calculamos el total de facturación para los pedidos realizados
+          mediante la web y los que no se realizaron por la web. Se encuetrán
+          agrupados por estado.
+        columns:
+          - name: state_id
+            description: "Id del estado por el que se agrupa"
+          - name: total_bulling_web_usd
+            description: "Total facturación mediante web"
+          - name: total_bulling_no_web_usd
+            description: "Total facturación sin realizar pedidos por la web"
+
+      - name: billing_web_zipcode
+        description: >
+          Calculamos el total de facturación para los pedidos realizados
+          mediante la web y los que no se realizaron por la web. Se encuetrán
+          agrupados por zipcode.
+        columns:
+          - name: zipcode_id
+            description: "Id del estado por el que se agrupa"
+          - name: total_bulling_web_usd
+            description: "Total facturación mediante web"
+          - name: total_bulling_no_web_usd
+            description: "Total facturación sin realizar pedidos por la web"
+
+      - name: embudo_ventas_total
+        description: >
+          Mostramos el número de sesiones por cada tipo de evento que se da en la web y el 
+          número de eventos con este mismo tipo de evento. Esto se realiza para cada tipo de evento
+          existente en la tabla envent_type.
+        columns:
+          - name: total_sessions
+            description: "Númnero total de sesiones que tenemos"
+          - name: total_page_view
+            description: "Total de veces que se repite un evento de tipo page_view"
+          - name: sessions_with_page_view
+            description: "Total de sesiones contienen un evento de tipo page_view"
+          - name: total_package_shipped
+            description: "Total de veces que se repite un evento de tipo package_shipped"
+          - name: sessions_with_package_shipped
+            description: "Total de sesiones contienen un evento de tipo package_shipped"
+          - name: total_checkout
+            description: "Total de veces que se repite un evento de tipo checkout"
+          - name: sessions_with_checkout
+            description: "Total de sesiones contienen un evento de tipo checkout"
+          - name: total_add_to_cart
+            description: "Total de veces que se repite un evento de tipo add_to_cart"
+          - name: sessions_with_add_to_cart
+            description: "Total de sesiones contienen un evento de tipo add_to_cart"
+
+      - name: fct_sessions
+        description: >
+          Agrupamos los tipos de evento que realiza un usuario en cada sesión. 
+          Guardamos también información personal de los usuarios.
+        columns:
+          - name: session_id
+            description: ""
+          - name: user_id
+            description: ""
+          - name: first_name
+            description: ""
+          - name: last_name
+            description: ""
+          - name: email
+            description: ""
+          - name: first_event_time_utc
+            description: ""
+          - name: last_event_time_utc
+            description: ""
+          - name: page_view_amount
+            description: ""
+          - name: package_shipped_amount
+            description: ""
+          - name: checkout_amount
+            description: ""
+          - name: add_to_cart_amount
+            description: ""
+
+      - name: sessions_by_state
+        description: >
+          Agrupamos las sesiones por estados y contamos el número de veces que se ha
+          realizdo un evento de cada tipo. 
+        columns:
+          - name: state_id
+            description: "Id del estado"
+          - name: total_sessions
+            description: "Total de sesiones realizadas en un estado"
+          - name: total_page_view
+            description: "Número de veces que se dio un evento de tipo page_view en un estado"
+          - name: sessions_with_page_view
+            description: "Número de sesiones que tienen al menos un evento de tipo page_view en un estado"
+          - name: total_package_shipped
+            description: "Número de veces que se dio un evento de tipo package_shipped en un estado"
+          - name: sessions_with_package_shipped
+            description: "Número de sesiones que tienen al menos un evento de tipo package_shipped en un estado"
+          - name: total_checkout
+            description: "Número de veces que se dio un evento de tipo checkout en un estado"
+          - name: sessions_with_checkout
+            description: "Número de sesiones que tienen al menos un evento de tipo checkout en un estado"
+          - name: total_add_to_cart
+            description: "Número de veces que se dio un evento de tipo add_to_cart en un estado"
+          - name: sessions_with_add_to_cart
+            description: "Número de sesiones que tienen al menos un evento de tipo add_to_cart en un estado"
+
+      - name: sessions_by_zipcode
+        description: >
+          Agrupamos las sesiones por estados y contamos el número de veces que se ha
+          realizdo un evento de cada tipo.
+        columns:
+          - name: zipcode_id
+            description: "Id del zipcode"
+          - name: total_sessions
+            description: "Total de sesiones realizadas en con un zipcode"
+          - name: total_page_view
+            description: "Número de veces que se dio un evento de tipo page_view en un zipcode"
+          - name: sessions_with_page_view
+            description: "Número de sesiones que tienen al menos un evento de tipo page_view en un zipcode"
+          - name: total_package_shipped
+            description: "Número de veces que se dio un evento de tipo package_shipped en un zipcode"
+          - name: sessions_with_package_shipped
+            description: "Número de sesiones que tienen al menos un evento de tipo package_shipped en un zipcode"
+          - name: total_checkout
+            description: "Número de veces que se dio un evento de tipo checkout en un zipcode"
+          - name: sessions_with_checkout
+            description: "Número de sesiones que tienen al menos un evento de tipo checkout en un zipcode"
+          - name: total_add_to_cart
+            description: "Número de veces que se dio un evento de tipo add_to_cart en un zipcode"
+          - name: sessions_with_add_to_cart
+            description: "Número de sesiones que tienen al menos un evento de tipo add_to_cart en un zipcode"
+
+      - name: visits_monthly_products
+        description: "Visitas realizadas mediante la web a cada producto mensualmente"
+        columns:
+          - name: product_id
+            description: "Id del producto"
+          - name: mes
+            description: "Mes en el que fue visitado"
+          - name: anio
+            description: "Año en el que fue visitado"
+          - name: total_monthly_visits
+            description: "Total de visitas por mes"

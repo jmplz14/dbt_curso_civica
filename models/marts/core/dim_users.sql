@@ -7,6 +7,7 @@ WITH stg_users AS (
 dim_user_new AS (
     SELECT
         user_id,
+        user_id_nk,
         first_name,
         last_name,
         email,

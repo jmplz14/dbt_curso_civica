@@ -1,0 +1,40 @@
+version: 2
+
+models:
+      - name: fct_marketing
+        description: "Caso de uso ejemplo que nos dejo Alex"
+        columns:
+          - name: user_id
+            description: "Id usuario"
+          - name: first_name
+            description: "Nombre"
+          - name: last_name
+            description: "Apellido"
+          - name: email
+            description: "Correo"
+          - name: phone_number
+            description: "Telefono"
+          - name: created_at_utc
+            description: "Fecha de creación"
+          - name: updated_at_utc
+            description: "Fecha de actualizacion"
+          - name: address_id
+            description: "Id de direccion"
+          - name: zipcode_id
+            description: "Id del zipcode"
+          - name: state_id
+            description: "Id del estado"
+          - name: country_id
+            description: "Id del país"
+          - name: total_number_orders
+            description: "Número total de pedidos realizados por cada usuario"
+          - name: total_order_cost_usd
+            description: "Suma total de costes por cada usuario"
+          - name: total_shipping_cost_usd
+            description: "Suma total de gastos de envio por cada usuario"
+          - name: total_disconunt_usd
+            description: "Total de ahorro con descuentos por cada usuario"
+          - name: total_product
+            description: "Total de productos distintos pedidos por un usuario"
+          - name: total_quantity_product
+            description: "Total de productos pedidos por un usuario"

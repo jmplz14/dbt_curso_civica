@@ -21,11 +21,8 @@ dim_addresses_new AS (
         addresses.address_id,
         addresses.address_id_nk,
         addresses.address,
-        zipcodes.zipcode,
         zipcodes.zipcode_id,
-        states.state,
         states.state_id,
-        countries.country,
         countries.country_id
 
     FROM stg_addresses as addresses

@@ -5,14 +5,14 @@ WITH stg_promos AS (
 dim_promos_new AS (
     SELECT
         promo_id,
-        promo_id as promo_id_nk,
+        promo_id_nk,
         discount,
         status
     FROM stg_promos
     union
     SELECT
-        'no_promo' as promo_id_nk,
         md5('no_promo') as promo_id,
+        'no_promo' as promo_id_nk,
         0 as discount,
         True as state 
     

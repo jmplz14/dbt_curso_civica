@@ -12,6 +12,7 @@ WITH stg_events AS (
 new_fct_events AS (
     SELECT
         events.event_id,
+        events.event_id_nk,
         events.event_type_id,
         events.session_id,
         events.product_id,

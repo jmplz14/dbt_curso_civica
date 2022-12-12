@@ -1,18 +1,6 @@
 version: 2
 
-sources:
-  - name: stg_sql_server_dbo
-    schema: sql_server_dbo
-    description: >
-      Zona silver de nuestro proyecto. En esta zona tendremos la información 
-      sobre usarios, direcciones, eventos, pedidos y productos una vez transformadas.
-    database: |
-        {%- if  target.name == 'user_dev' -%} dev_silver_db_alumno24 
-        {%- elif target.name == 'ci' -%} dev_silver_db_alumno24 
-        {%- elif target.name == 'pro'-%} pro_silver_db_alumno24  
-        {%- else -%} {{target.database}}_silver_db_alumno24 
-        {%- endif -%}
-    tables:
+models:
 
       - name: stg_sql_server_dbo_addresses
         description: "Almacena las direcciones de usuarios y pedidos."
@@ -36,7 +24,7 @@ sources:
             description: "Identificador del zipcode."
             tests:
               - relationships:
-                  to: ref('stg_sql_server_dbo_addresses')
+                  to: ref('stg_sql_server_dbo_zipcode')
                   field: zipcode_id
 
           - name: _fivetran_deleted
