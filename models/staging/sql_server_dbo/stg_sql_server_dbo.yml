@@ -1,0 +1,505 @@
+version: 2
+
+sources:
+  - name: stg_sql_server_dbo
+    schema: sql_server_dbo
+    description: >
+      Zona silver de nuestro proyecto. En esta zona tendremos la información 
+      sobre usarios, direcciones, eventos, pedidos y productos una vez transformadas.
+    database: |
+        {%- if  target.name == 'user_dev' -%} dev_silver_db_alumno24 
+        {%- elif target.name == 'ci' -%} dev_silver_db_alumno24 
+        {%- elif target.name == 'pro'-%} pro_silver_db_alumno24  
+        {%- else -%} {{target.database}}_silver_db_alumno24 
+        {%- endif -%}
+    tables:
+
+      - name: stg_sql_server_dbo_addresses
+        description: "Almacena las direcciones de usuarios y pedidos."
+        columns:
+          - name: address_id
+            description: "Id única para una dirección traducida con md5."
+            tests:
+              - not_null 
+              - unique
+
+          - name: address_id_nk
+            description: "Id única natural."
+            tests:
+              - not_null 
+              - unique
+
+          - name: address
+            description: "Contiene el número y la calle."
+
+          - name: zipcode_id
+            description: "Identificador del zipcode."
+            tests:
+              - relationships:
+                  to: ref('stg_sql_server_dbo_addresses')
+                  field: zipcode_id
+
+          - name: _fivetran_deleted
+            description: ""
+          - name: _fivetran_synced
+            description: ""
+
+      - name: stg_sql_server_dbo_countries
+        description: "Almacena los paises en los que tenemos direcciones."
+        columns:
+          - name: country
+            description: "Nombre del país."
+            tests:
+              - not_null 
+              - unique
+
+          - name: country_id
+            description: "Traducción md5 del nombre para obtener un id"
+            tests:
+              - not_null 
+              - unique
+
+      - name: stg_sql_server_dbo_events_type
+        description: "Separamos los tipos de evento a una nueva tabla."
+        columns:
+          - name: event_type
+            description: "Nombre de un tipo de evento."
+            tests:
+              - not_null 
+              - unique
+
+          - name: event_type_id
+            description: "Traducción md5 de events_type"
+            tests:
+              - not_null 
+              - unique
+        
+      - name: stg_sql_server_dbo_events
+        description: "Tabla que se almacena todo lo relaciondo con los eventos."
+        columns:
+          - name: event_id
+            description: "Es la traducion con md5 de la clave natural."
+            tests:
+              - not_null
+              - unique
+          
+          - name: event_id_nk
+            description: "Es la traducion con md5 de la clave natural."
+            tests:
+              - not_null
+              - unique
+
+          - name: session_id
+            description: "Sessión a la que pertecene un evento"
+            tests:
+              - not_null
+              - relationships:
+                  to: ref('stg_sql_server_dbo_sessions')
+                  field: session_id
+
+          - name: event_type_id
+            description: "Id que referencia el tipo de vento al que pertenece."
+            tests:
+              - not_null
+              - relationships:
+                  to: ref('stg_sql_server_dbo_events_type')
+                  field: event_type_id
+
+          - name: created_at_utc
+            description: "Fecha de creacion del evento."
+
+
+          - name: product_id
+            description: "Id del procutos que se esta visitando. Solo si el evento es add_to_cart o page_view."
+            tests:
+              - relationships:
+                  to: ref('stg_sql_server_dbo_products')
+                  field: product_id
+
+          - name: order_id
+            description: "Id del pedido que se está visitando. Solo si el evento es package_shipped o checkout."
+            tests:
+              - relationships:
+                  to: ref('stg_sql_server_dbo_orders')
+                  field: order_id
+   
+          - name: page_url
+            description: "Url visitada"
+      - name: stg_sql_server_dbo_order_items
+        description: "Tabla intermedia para conectar los pedidos con los productos."
+        columns:
+        
+          - name: order_id
+            description: "Id del pedido al que pertenece el producto."
+            tests:
+              - not_null
+              - relationships:
+                  to: ref('stg_sql_server_dbo_orders')
+                  field: order_id
+
+          - name: product_id
+            description: "Id de un prodcuto que pertenece a un pedido."
+            tests:
+              - relationships:
+                  to: ref('stg_sql_server_dbo_products')
+                  field: product_id
+              - not_null
+              
+
+          - name: quantity
+            description: "Cantidad de un producto que tiene el pedido."
+
+
+          - name: _fivetran_deleted
+            description: ""
+
+          - name: _fivetran_synced
+            description: ""
+          
+      - name: stg_sql_server_dbo_orders_status
+        description: "Tabla para almacenar los estados que puede tener un order."
+        columns:
+        
+          - name: order_status
+            description: "Nombre de los tipos de estado."
+            tests:
+              - not_null
+              - unique
+
+          - name: order_status_id
+            description: "Md5 del nombre de estado"
+            tests:
+              - unique
+              - not_null
+              
+      - name: stg_sql_server_dbo_orders
+        description: >
+          Contienen toda la información necesaria de un pedido. 
+          Tiene los costes que tiene un pedido, los datos de la empresa de envío y fechas
+          del envío. 
+        columns:
+          - name: order_id
+            description: "Id del pedido."
+            tests:
+              - not_null
+              - unique
+          
+          - name: order_id_nk
+            description: "Id natural del pedido."
+            tests:
+              - not_null
+              - unique
+
+          - name: shipping_service_id
+            description: "Id que referencia a la empresa encargada del envio."
+            tests:
+              - relationships:
+                  to: ref('stg_sql_server_dbo_shipping_service')
+                  field: shipping_service_id
+        
+          - name: shipping_cost_usd
+            description: "Coste del envío para el pedido."
+            tests:
+              - dbt_utils.expression_is_true:
+                  expression: ">= 0"
+              - not_null
+
+          - name: address_id
+            description: "Id de la dirección de envío."
+            tests:
+              - relationships:
+                  to: ref('stg_sql_server_dbo_addresses')
+                  field: address_id
+              - not_null
+
+          - name: created_at_utc
+            description: "Fecha de creación del pedido."
+            tests:
+              - not_null
+
+          - name: promo_id
+            description: >
+              Id de la promoción que tiene el pedido. Si el pedido tiene un promo_id, la 
+              suma shipping_cost + order_cost será distinta al order_total. El order_total
+              ya tiene el porcentaje de descuento aplicado. 
+            tests:
+              - relationships:
+                  to: ref('stg_sql_server_dbo_promos')
+                  field: promo_id
+
+          - name: estimated_delivery_at_utc
+            description: "Fecha estimada del envio."
+
+          - name: order_cost_usd
+            description: "Coste del pedido. No tiene aplicado el envío ni el descuento."
+            tests:
+              - dbt_utils.expression_is_true:
+                  expression: "> 0"
+              - not_null
+
+          - name: user_id
+            description: "Usuario que realiza el pedido."
+            tests:
+              - relationships:
+                  to: ref('stg_sql_server_dbo_users')
+                  field: user_id
+              - not_null
+
+          - name: order_total_usd
+            description: "Precio total del pedido. Con el descuento aplicado y el coste de envío."
+            tests:
+              - dbt_utils.expression_is_true:
+                  expression: "> 0"
+              - not_null
+          - name: delivered_at_utc
+            description: "Fecha de envio para el pedido."
+
+          - name: tracking_id
+            description: "Identificador del tracking para un pedido."
+
+          - name: order_status_id
+            description: > 
+              Estado actual del pedido. Pueden ser delivered, shipped y preparing.
+            tests:
+              - relationships:
+                  to: ref('stg_sql_server_dbo_orders_status')
+                  field: order_status_id
+              - not_null
+            
+
+          - name: _fivetran_deleted
+            description: ""
+          - name: _fivetran_synced
+            description: ""
+
+      - name: stg_sql_server_dbo_products_price
+        description: "Tabla donde almacenaremos los cambios de precio de un prodcuto"
+        columns:
+          - name: product_id
+            description: "Id del producto"
+            tests:
+              - relationships:
+                  to: ref('stg_sql_server_dbo_products')
+                  field: product_id
+              - not_null
+        
+          - name: price_usd
+            description: "Precio del producto"
+            tests:
+              - not_null
+              - dbt_utils.expression_is_true:
+                  expression: "> 0"
+          - name: dbt_valid_from
+            description: ""
+          - name: dbt_valid_to
+            description: ""
+          - name: dbt_scd_id
+            description: ""
+          - name: dbt_updated_at
+            description: ""
+          - name: _fivetran_deleted
+            description: ""
+          - name: _fivetran_synced
+            description: ""
+
+      - name: stg_sql_server_dbo_products
+        description: "Tabla para contener la información de productos."
+        columns:
+          - name: product_id_nk
+            description: "Identificador natural de un producto."
+            tests:
+              - not_null
+              - unique
+          - name: product_id
+            description: "Identificador natural de un producto."
+            tests:
+              - not_null
+              - unique
+
+          - name: price_usd
+            description: "Precio del producto."
+
+          - name: name
+            description: "Nombre del producto."   
+
+          - name: inventory
+            description: "Cantidad de unidades que tenemos de un producto."
+
+          - name: _fivetran_deleted
+            description: ""
+
+          - name: _fivetran_synced
+            description: ""
+      
+      - name: stg_sql_server_dbo_promos
+        description: "Información de las promociones que tenemos para los pedidos."
+        columns:
+
+          - name: promo_id_nk
+            description: "Id natural de la promoción. En este caso se trata de un string con el nombre."
+            tests:
+              - unique
+              - not_null
+
+          - name: promo_id
+            description: "Id con md5 de la promoción. En este caso se trata de un string con el nombre."
+            tests:
+              - unique
+              - not_null
+            
+          - name: status
+            description: "Si la promocion esta activa o inactiva. Es un string."
+
+          - name: discount
+            description: "Descuento que aplica la promoción."
+            tests:
+
+          - name: _fivetran_deleted
+            description: ""
+
+          - name: _fivetran_synced
+            description: ""
+
+      - name: stg_sql_server_dbo_sessions
+        description: "Tabla que contiene las esiones de cada usuarios"
+        columns:
+          - name: session_id_nk
+            description: "Id natural de la sesión"
+            tests:
+              - not_null
+              - unique 
+          - name: session_id
+            description: "Id de la sesión con md5"
+            tests:
+              - not_null
+              - unique 
+
+          - name: user_id
+            description: "Id del usuairo que realiza una sesión"
+            tests:
+              - relationships:
+                  to: ref('stg_sql_server_dbo_users')
+                  field: user_id
+              - not_null
+
+            
+          - name: created_at_utc
+            description: "Fecha creación del usuario"
+
+      - name: stg_sql_server_dbo_shipping_service
+        description: "Tabla que contiene las empresas que realizan envios"
+        columns:
+          - name: shipping_service
+            description: "Nombre del servicio de envio"
+            tests:
+              - not_null
+              - unique 
+          - name: shipping_service_id
+            description: ""
+            tests:
+              - not_null
+              - unique 
+
+      - name: stg_sql_server_dbo_states
+        description: "Tabla que contiene los estado a los que enviamos paquetes"
+        columns:
+          - name: state
+            description: "Nombre del estado"
+            tests:
+              - not_null
+              - unique 
+          - name: state_id
+            description: "Id del estado mediante md5"
+            tests:
+              - not_null
+              - unique 
+          - name: country_id
+            description: "Id del país al que pertenece"
+            tests:
+              - relationships:
+                  to: ref('stg_sql_server_dbo_countries')
+                  field: country_id
+              - not_null
+
+      - name: stg_sql_server_dbo_users
+        description: "Tabla para almacenar la información de los usuarios que realizan pedidos y eventos."
+        columns:
+          - name: user_id_nk
+            description: "Id natural del usuario"
+            tests:
+              - not_null
+              - unique
+
+          - name: user_id
+            description: "Id md5 del usuario"
+            tests:
+              - not_null
+              - unique
+            
+          - name: email
+            description: "Correo del usuario."
+
+          
+          - name: updated_at_utc
+            description: "Fecha de actualizacion de un usuario"
+
+
+          - name: address_id
+            description: "Identificador de la dirección de un usuario."
+            tests:
+              - relationships:
+                  to: ref('stg_sql_server_dbo_addresses')
+                  field: address_id
+              - not_null
+
+          - name: created_at_utc
+            description: "Fecha de creación de un usario."
+
+
+          - name: phone_number
+            description: "Numero de teléfon separado por guiones."
+
+
+          - name: first_name
+            description: "Nombre del usuario"
+
+          - name: last_name
+            description: "Apellidos del usuario"
+
+          - name: _fivetran_deleted
+            description: ""
+          - name: _fivetran_synced
+            description: ""
+
+      - name: stg_sql_server_dbo_zipcode
+        description: "Tabla que contiene los zipcodes y el estado al que pertenece."
+        columns:
+          - name: zipcode
+            description: "Numero del zip code."
+            tests:
+              - not_null
+              - unique
+          - name: zipcode_id
+            description: "Id md5 del zip code"
+            tests:
+              - not_null
+              - unique
+          - name: state_id
+            description: "Id del estado al que pertenece"
+            tests:
+              - relationships:
+                  to: ref('stg_sql_server_dbo_states')
+                  field: state_id
+              - not_null
+
+
+
+
+      
+        
+
+
+         
+      
+
+      

@@ -5,7 +5,7 @@ WITH src_events AS (
 
 new_events AS (
         SELECT
-            event_id as event_id_natural,
+            event_id as event_id_nk,
             md5(event_id) as event_id,
             md5(event_type) as event_type_id,
             md5(session_id) as session_id,
